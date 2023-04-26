@@ -4,14 +4,11 @@ import { rpsls } from "./lib/bin/rpsls-cli.js";
 import minimist from "minimist";
 import express from "express";
 
-import { GameMaker as RpsGameMaker } from "./lib/bin/rps-cli.js";
-import { GameMaker as RpslsGameMaker } from "./lib/bin/rpsls-cli.js";
-
-let argv = minimist(process.argv.slice(2));
+let args = minimist(process.argv.slice(2));
 let PORT = 5000;
 
-if (argv["port"]) {
-  PORT = argv["port"];
+if (args["port"]) {
+  PORT = args["port"];
 }
 
 let app = express();
@@ -27,57 +24,40 @@ app.get("/app/rps", (req, res) => {
   res.status(200).send(rps());
 });
 
-app.get("/app/rps/play", (req, res) => {
-  let shot;
-  req.body.shot ? (shot = req.body.shot) : (shot = req.query.shot);
-
-  res.status(200).send(rps(shot));
-});
-
-app.post("/app/rps/play", (req, res) => {
-  let shot;
-  req.body.shot ? (shot = req.body.shot) : (shot = req.query.shot);
-
-  res.status(200).send(rps(shot));
-});
-
-app.get("/app/rps/play/:shot", (req, res) => {
-  let shot = req.params.shot;
-  if (!RpsGameMaker.validateShot(shot)) {
-    res.status(404).send("404 NOT FOUND");
-  }
-  res.status(200).send(rps(shot));
-});
-
 app.get("/app/rpsls", (req, res) => {
   res.status(200).send(rpsls());
 });
 
-app.get("/app/rpsls/play", (req, res) => {
-  let shot;
-  req.body.shot ? (shot = req.body.shot) : (shot = req.query.shot);
+app.get("/app/rps/play", (req, res) => {
+  res.status(200).send(rps(req.query.shot));
+});
 
-  res.status(200).send(rpsls(shot));
+app.get("/app/rpsls/play", (req, res) => {
+  res.status(200).send(rpsls(req.query.shot));
+});
+
+app.post("/app/rps/play", (req, res) => {
+  res.status(200).send(rps(req.body.shot));
 });
 
 app.post("/app/rpsls/play", (req, res) => {
-  let shot;
-  req.body.shot ? (shot = req.body.shot) : (shot = req.query.shot);
+  res.status(200).send(rpsls(req.body.shot));
+});
 
-  res.status(200).send(rpsls(shot));
+app.get("/app/rps/play/:shot", (req, res) => {
+  res.status(200).send(rps(req.params.shot));
 });
 
 app.get("/app/rpsls/play/:shot", (req, res) => {
-  let shot = req.params.shot;
-  if (!RpslsGameMaker.validateShot(shot)) {
-    res.status(404).send("404 NOT FOUND");
-  }
-
-  res.status(200).send(rpsls(shot));
+  res.status(200).send(rpsls(req.params.shot));
 });
 
+// For all other undefined endpoints
 app.get("*", (req, res) => {
-  res.status(404).send("404 NOT FOUND");
-});
+    res.status(404).send("404 NOT FOUND");
+  });
 
-app.listen(PORT);
+
+app.listen(PORT, () => {
+  console.log(`App running on port ${PORT}`);
+});
